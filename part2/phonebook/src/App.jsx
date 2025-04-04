@@ -3,18 +3,29 @@ import personService from "./services/persons";
 import Filter from "./Filter";
 import PersonForm from "./PersonForm";
 import Persons from "./Persons";
+import Notification from "./Notification";
 
 const App = () => {
 	const [persons, setPersons] = useState([]);
 	const [newName, setNewName] = useState("");
 	const [newNumber, setNewNumber] = useState("");
 	const [search, setSearch] = useState("");
+	const [notification, setNotification] = useState(null);
+	const [notificationType, setNotificationType] = useState("success");
 
 	useEffect(() => {
 		personService.getAll().then((initialPersons) => {
 			setPersons(initialPersons);
 		});
 	}, []);
+
+	const showNotification = (message, type = "success") => {
+		setNotification(message);
+		setNotificationType(type);
+		setTimeout(() => {
+			setNotification(null);
+		}, 5000);
+	};
 
 	const addPerson = (event) => {
 		event.preventDefault();
@@ -39,10 +50,14 @@ const App = () => {
 						);
 						setNewName("");
 						setNewNumber("");
+						showNotification(`Updated ${newName}'s number successfully!`);
 					})
 					.catch((error) => {
 						console.error(`Error updating ${newName}:`, error);
-						alert(`Failed to update ${newName}'s number: ${error.message}`);
+						showNotification(
+							`Failed to update ${newName}'s number: ${error.message}`,
+							"error",
+						);
 					});
 			}
 			return;
@@ -59,10 +74,14 @@ const App = () => {
 				setPersons([...persons, returnedPerson]);
 				setNewName("");
 				setNewNumber("");
+				showNotification(`Added ${newName} to phonebook successfully!`);
 			})
 			.catch((error) => {
 				console.error(`Error adding person ${newName}:`, error);
-				alert(`Failed to add ${newName} to phonebook: ${error.message}`);
+				showNotification(
+					`Failed to add ${newName} to phonebook: ${error.message}`,
+					"error",
+				);
 			});
 	};
 
@@ -72,10 +91,14 @@ const App = () => {
 				.remove(id)
 				.then(() => {
 					setPersons(persons.filter((person) => person.id !== id));
+					showNotification(`Deleted ${name} from phonebook successfully!`);
 				})
 				.catch((error) => {
 					console.error(`Error deleting ${name}:`, error);
-					alert(`Failed to delete ${name} from phonebook: ${error.message}`);
+					showNotification(
+						`Failed to delete ${name} from phonebook: ${error.message}`,
+						"error",
+					);
 				});
 		}
 	};
@@ -99,6 +122,8 @@ const App = () => {
 	return (
 		<div>
 			<h2>Phonebook</h2>
+
+			<Notification message={notification} type={notificationType} />
 
 			<Filter search={search} handleSearchChange={handleSearchChange} />
 
