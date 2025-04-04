@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import personService from "./services/persons";
 import Filter from "./Filter";
 import PersonForm from "./PersonForm";
 import Persons from "./Persons";
@@ -11,15 +11,40 @@ const App = () => {
 	const [search, setSearch] = useState("");
 
 	useEffect(() => {
-		axios.get("http://localhost:3001/persons").then((response) => {
-			setPersons(response.data);
+		personService.getAll().then((initialPersons) => {
+			setPersons(initialPersons);
 		});
 	}, []);
 
 	const addPerson = (event) => {
 		event.preventDefault();
-		if (persons.some((person) => person.name === newName)) {
-			alert(`${newName} is already added to phonebook`);
+
+		const existingPerson = persons.find((person) => person.name === newName);
+
+		if (existingPerson) {
+			if (
+				window.confirm(
+					`${newName} is already added to phonebook, replace the old number with a new one?`,
+				)
+			) {
+				const updatedPerson = { ...existingPerson, number: newNumber };
+
+				personService
+					.update(existingPerson.id, updatedPerson)
+					.then((returnedPerson) => {
+						setPersons(
+							persons.map((person) =>
+								person.id !== existingPerson.id ? person : returnedPerson,
+							),
+						);
+						setNewName("");
+						setNewNumber("");
+					})
+					.catch((error) => {
+						console.error(`Error updating ${newName}:`, error);
+						alert(`Failed to update ${newName}'s number: ${error.message}`);
+					});
+			}
 			return;
 		}
 
@@ -27,9 +52,32 @@ const App = () => {
 			name: newName,
 			number: newNumber,
 		};
-		setPersons([...persons, person]);
-		setNewName("");
-		setNewNumber("");
+
+		personService
+			.create(person)
+			.then((returnedPerson) => {
+				setPersons([...persons, returnedPerson]);
+				setNewName("");
+				setNewNumber("");
+			})
+			.catch((error) => {
+				console.error(`Error adding person ${newName}:`, error);
+				alert(`Failed to add ${newName} to phonebook: ${error.message}`);
+			});
+	};
+
+	const deletePerson = (id, name) => {
+		if (window.confirm(`Delete ${name}?`)) {
+			personService
+				.remove(id)
+				.then(() => {
+					setPersons(persons.filter((person) => person.id !== id));
+				})
+				.catch((error) => {
+					console.error(`Error deleting ${name}:`, error);
+					alert(`Failed to delete ${name} from phonebook: ${error.message}`);
+				});
+		}
 	};
 
 	const handleNameChange = (event) => {
@@ -66,7 +114,7 @@ const App = () => {
 
 			<h3>Numbers</h3>
 
-			<Persons persons={filteredPersons} />
+			<Persons persons={filteredPersons} deletePerson={deletePerson} />
 		</div>
 	);
 };
