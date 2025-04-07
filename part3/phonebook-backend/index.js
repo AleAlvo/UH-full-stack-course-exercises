@@ -1,8 +1,15 @@
 const express = require("express");
+const morgan = require("morgan");
 const app = express();
 const PORT = 3001;
 
 app.use(express.json());
+
+morgan.token("body", function (req) {
+	return JSON.stringify(req.body);
+});
+
+app.use(morgan(":method :url :status :res[content-length] - :response-time ms :body"));
 
 let entries = [
 	{ id: 1, name: "John Doe", number: "123-456-7890" },
