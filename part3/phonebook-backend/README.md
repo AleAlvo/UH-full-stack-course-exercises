@@ -4,7 +4,7 @@ A simple backend for managing phone contacts. Made for the University of Helsink
 
 ## Live version
 
-The app is running at: [[URL](https://phonebook-backend-deploy-xkz7.onrender.com)]
+The app is running at: [[URL](https://phonebookbackend-8gmf.onrender.com)]
 
 ## Running locally
 
