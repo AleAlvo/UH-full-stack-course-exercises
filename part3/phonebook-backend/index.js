@@ -1,10 +1,11 @@
 const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
+const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(express.static("dist"));
+app.use(express.static(path.join(__dirname, "dist")));
 app.use(cors());
 app.use(express.json());
 
@@ -87,7 +88,7 @@ app.get("/info", (req, res) => {
 });
 
 app.get("*", (req, res) => {
-	res.sendFile("dist/index.html", { root: __dirname });
+	res.sendFile(path.join(__dirname, "dist", "index.html"));
 });
 
 app.listen(PORT, () => {
